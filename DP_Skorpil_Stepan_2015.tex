@@ -1,0 +1,68 @@
+% options:
+% thesis=B bachelor's thesis
+% thesis=M master's thesis
+% czech thesis in Czech language
+% slovak thesis in Slovak language
+% english thesis in English language
+% hidelinks remove colour boxes around hyperlinks
+
+\documentclass[thesis=M,czech]{FITthesis}[2012/06/26]
+
+\usepackage[utf8]{inputenc} % LaTeX source encoded as UTF-8
+
+\usepackage{graphicx} %graphics files inclusion
+% \usepackage{amsmath} %advanced maths
+% \usepackage{amssymb} %additional math symbols
+
+\usepackage{dirtree} %directory tree visualisation
+
+% % list of acronyms
+% \usepackage[acronym,nonumberlist,toc,numberedsection=autolabel]{glossaries}
+% \iflanguage{czech}{\renewcommand*{\acronymname}{Seznam pou{\v z}it{\' y}ch zkratek}}{}
+% \makeglossaries
+
+\newcommand{\tg}{\mathop{\mathrm{tg}}} %cesky tangens
+\newcommand{\cotg}{\mathop{\mathrm{cotg}}} %cesky cotangens
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% ODTUD DAL VSE ZMENTE
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+\department{Katedra teoretické informatiky}
+\title{Aplikace pro analýzu textových zpráv pro potřeby vyšetřovatelů}
+\authorGN{Štěpán} %(křestní) jméno (jména) autora
+\authorFN{Škorpil} %příjmení autora
+\authorWithDegrees{Bc.~Štěpán Škorpil} %jméno autora včetně současných akademických titulů
+\supervisor{Ing.~Pavel Kordík, Ph.D.}
+\acknowledgements{Chtěl bych poděkovat všem, kteří mě podporovali během tvorby diplomové práce, ale i~během celého studia. Děkuji především celé rodině, všem přátelům a~zvlášť své přítelkyni za trpělivost, které se mi dostávalo.}
+\abstractCS{Cílem této práce je navrhnout a~implementovat software pro zpracování textových dokumentů v českém jazyce, který by mohla Policie České republiky využít v~boji se zločinem.
+
+Výsledkem práce je první část komplexního řešení, která se zabývá prohledáváním dokumentů, automatickým tříděním do shluků a hledáním podobných dokumentů. Práce se snaží dosáhnout cílů hledáním vhodných algoritmů pro stemizaci českého textu.}
+\abstractEN{Sem doplňte ekvivalent abstraktu Vaší práce v~angličtině.}
+\placeForDeclarationOfAuthenticity{V~Praze}
+\declarationOfAuthenticityOption{4} %volba Prohlášení (číslo 1-6)
+\keywordsCS{Vyhledávání, Indexace, Stemizace českého textu, Shluková analýza}
+\keywordsEN{Searching, Indexing, Stemming of Czech text, Cluster analyzis}
+
+\begin{document}
+
+% \newacronym{CVUT}{{\v C}VUT}{{\v C}esk{\' e} vysok{\' e} u{\v c}en{\' i} technick{\' e} v Praze}
+% \newacronym{FIT}{FIT}{Fakulta informa{\v c}n{\' i}ch technologi{\' i}}
+
+
+\include{0_introduction}
+\include{1_analysis}
+\include{2_design}
+\include{3_implementation}
+\include{4_testing}
+\include{5_conclusion}
+
+\bibliographystyle{csn690}
+\bibliography{bibliography}
+
+\appendix
+\include{A_abbreviations}
+\include{B_manual}
+\include{C_cd}
+
+\end{document}

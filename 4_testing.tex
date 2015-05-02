@@ -1,0 +1,210 @@
+\chapter{Testování} \label{testing}
+\section{Test stemmerů}
+\subsection{Správnost kořenů}
+V~této části bych chtěl otestovat kvality jednotlivých implementovaných stemmerů. Pan Helebrand pro účely testování svého stemmeru vytvořil seznamy slov, ve kterých ručně označil správné kořeny. V seznamu jsou kořeny u slov uvedeny dva, jeden lingvisticky naprosto správný, druhý méně správný, ale uznatelný tvar.
+
+Seznamy jsou připraveny dva. Jeden obsahuje slova vybraná z reálného článku. Ten umožní otestovat nasazení algoritmu v reálném prostředí. Druhý seznam slov je speciálně ručně připravený pro otestování různých pravidelných i~nepravidelných tvarů a výjimek. Obsažená slova jsou uvedena několikrát, ve všech pádech a číslech. Slova jsou v seznamech tříděny do souborů podle slovních druhů, půjde tedy z~výsledků odvodit úspěšnost získávání kořene slova jednotlivých slovních druhů.
+
+V jazyce Ruby jsem si naprogramoval krátký jednoúčelový skript. Ten na základě parametrů načte příslušný seznam slov a zparsuje výchozí tvary slov a jejich označené kořeny. Jednotlivá slova pak nechá převést na jejich kořeny analyzerem s příslušným stemmerem přímo posláním na REST rozhraní Solru. Získaný kořen porovná s~označenými kořeny v~seznamu. Průběžné výsledky zapisuje do výstupního souboru, aby bylo možné provádět hlubší analýzy. Skript nakonec vrátí číselné hodnoty, které odpovídají celkovému počtu slov a~počtu slov, která byla stemována na žádaný tvar. Lze tak vyjádřit procentuální úspěšnost algoritmu.
+
+Otestoval jsem tímto skriptem všechny české stemmery. Výsledky jsou zaneseny v~tabulce \ref{tab:test_stm}. Z~tabulky je patrné, že v~tomto testu si vede nejhůře původní stemmer. Nejlépe pak dopadl stemmer pana Helebranda. Z~výsledků jsem také zjistil, že slovníkový stemmer Hunspell není celkově příliš účinný, ale má velmi dobré výsledky na slovesech. Je to dáno tím, že jde spíše o~lematizer, který vrací slova v~základním tvaru, takže se neshoduje s~kořenem. Zároveň je na vině kvalita slovníku, přeci jen použité slovníky byly tvořeny za účelem kontroly pravopisu.
+
+Z další analýzy výsledků algoritmů, kdy jsem procházel výstupní soubor s vytvořenými kořeny, jsem zjistil, že nenalezne-li Hunspell slovo ve slovníku, vrací původní tvar slova. Napadlo mě tedy zkusit zřetězit dva stemmery za sebe. Nejdříve se slovo předloží Hunspell stemmeru. Když nezafunguje, stále bude slovo v původním tvaru a mohu jej předložit stemmeru dalšímu. Když bude úspěšný, vrátí slovo podle slovníku v základním tvaru a další stemmer v pořadí bude mít jen jednodušší práci s ořezáváním na kořen slova. V obou případech by měl být výsledkem kořen slova použitelný pro indexaci. Vytvořil jsem tedy v konfiguraci stemmeru další analyzer. Jako druhý stemmer za slovníkový jsem zvolil ten stemmer, který měl v testu nejlepší výsledek - Helebrandův.
+
+Výsledný analyzer jsem otestoval stejným způsobem jako předešlé a~zanesl výsledek do tabulky \ref{tab:test_stm} pod názvem \emph{text\_cz\_hh}. Analyzer dosáhl rekordní úspěšnosti 70,98\%. Obě metody se dle očekávání doplňují. Slovník přispívá vysokou přesností, stemmer univerzálním použitím na kterékoliv slovo.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|r|r|r|r|r|r|r|r|}
+\hline
+(\%) & \multicolumn{2}{|c|}{\textbf{Podst. jm.}} & \multicolumn{2}{|c|}{\textbf{Příd. jm.}} & \multicolumn{2}{|c|}{\textbf{Slovesa}} & \multicolumn{2}{|c|}{\textbf{Vše}} \\ \hline
+\textbf{Stemmery} & \textbf{Čl.} & \textbf{Tst.} & \textbf{Čl.} & \textbf{Tst.} & \textbf{Čl.} & \textbf{Tst.} & \textbf{Čl.} & \textbf{Tst.} \\ \hline
+cz & 51,68 & 3,07 & 39,69 & 4,15 & 7,58 & 2,44 & 38,50 & 3,20 \\ \hline
+cz\_light & 60,40 & 3,80 & 46,56 & 2,63 & 11,36 & 2,64 & 45,63 & 3,40 \\ \hline
+cz\_agressive & 55,03 & 48,53 & 52,67 & 23,37 & 3,03 & 0,00 & 42,25 & 36,61 \\ \hline
+cz\_helebrand & 53,69 & 58,47 & 49,62 & 47,16 & 31,82 & 38,62 & 47,59 & 53,39 \\ \hline
+cz\_hunspell & 35,91 & 0,00 & 1,53 & 0,00 & 70,45 & 90,04 & 38,04 & 12,55 \\ \hline
+\hline
+cz\_hh & 56,04 & 74,42 & 54,20 & 66,39 & 39,39 & 61,59 & 51,69 & 70,98 \\ \hline
+\end{tabular}
+\end{center}
+\caption{Výsledek testu správnosti kořenů}
+\label{tab:test_stm}
+\end{table}
+
+\subsection{Shodnost kořenů}
+Další důkladnou analýzou výsledků předchozího testu jsem zjistil, že test nevypovídá dostatečně o vhodnosti nasazení stemmeru pro indexaci a~vyhledávání. Pro nejlepší výsledky je nutné, aby stemmer vracel pokud možno stejný kořen pro všechny možné tvary jednoho slova. A~to se v~mnoha případech nedělo.
+
+Připravil jsem tedy test nový. Odvodil jsem nový seznam slov, kde na řádku jsou vždy různé tvary téhož slova. Upravil jsem také testovací algoritmus. Ten tentokrát postupně nechá všechny tvary jednoho slova  zpracovat analyzerem Solru a porovnává vytvořené kořeny mezi sebou. Poté spočítá, kolik procent kořenů se shoduje. Čím více slov se tedy zpracuje do stejného kořene, tím vyšší číslo a tím lepší podal algoritmus výsledek na daném slově. Celkovou úspěšnost algoritmu potom odvozuji ze dvou čísel. Z průměrné úspěšnosti, získané aritmetickým průměrem úspěšnosti na jednotlivých slovech, a úspěšnosti, počítané jako procento slov, jejichž všechny tvary se převedly na shodný tvar, jinými slovy na kolika procentech slov měl algoritmus stoprocentní úspěšnost.
+
+Výsledky testu jsem zanesl do tabulky \ref{tab:test_eql}. První sloupec vždy udává průměrný počet nalezených shodných kořenů, druhý pro kolik slov byl nalezen shodný kořen pro všechny jejich tvary. V~tomto testu se ukazuje, že nejlepších výsledků dosahuje slovníkový Hunspell stemmer. Druhým nejlepším je původní stemmer zabudovaný v Solru.
+
+Oba stemmery předstihuje pouze kombinace Hunspell a Helebrnd stemmeru, vytvořená po minulém testu, což potvrzuje funkčnost navrženého principu kombinování. Kombinace stemmerů byla vytvořena na základě úspěšnosti v předešlém testu. Tento test ukazuje výsledky odlišné a tak jsem vytvočil nový analyzer s použitím nejúpsěšnějších stemmerů v tomto testu - Hunspell a původní stemmer. Nový kombinovaný analyzer jsem také podrobil testu a výsledky zanesl do tabulky pod jménem \emph{text\_cz\_hx}. Nově vytvořený stemmer dosahuje nejlepších výsledků a~zdá se tak být pro vyhledávání nejvhodnějším kandidátem.
+
+V konfiguraci Solru jsem na základě výsledků testu nastavil pro pole \emph{text} datový typ \emph{text\_cz\_hx} sestávající z~po sobě jdoucích \emph{solr.Hunspell} stemmeru a~\emph{solr.CzechStemmer}.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|r|r|r|r|r|r|r|r|}
+\hline
+(\%) & \multicolumn{2}{|c|}{\textbf{Podst. jm.}} & \multicolumn{2}{|c|}{\textbf{Příd. jm.}} & \multicolumn{2}{|c|}{\textbf{Slovesa}} & \multicolumn{2}{|c|}{\textbf{Vše}} \\ \hline
+\textbf{Stemmery} & \textbf{Pr.} & \textbf{Úsp.} & \textbf{Pr.} & \textbf{Úsp.} & \textbf{Pr.} & \textbf{Úsp.} & \textbf{Pr.} & \textbf{Úsp.} \\ \hline
+cz & 98,38 & 92,00 & 94,60 & 40,00 & 24,95 & 1,82 & 85,09 & 62,22 \\ \hline
+cz\_light & 87,40 & 38,00 & 81,38 & 3,64 & 23,50 & 1,52 & 75,08 & 21,11 \\ \hline
+cz\_agressive & 89,57 & 54,00 & 91,75 & 31,64 & 39,35 & 1,82 & 81,81 & 37,78 \\ \hline
+cz\_helebrand & 77,91 & 33,27 & 59,92 & 3,27 & 52,27 & 5,15 & 68,64 & 18,48 \\ \hline
+cz\_hunspell & 86,66 & 44,18 & 84,10 & 32,00 & 94,39 & 66,67 & 87,24 & 44,55 \\ \hline
+\hline
+cz\_hh & 90,44 & 51,09 & 90,00 & 32,00 & 94,39 & 66,67 & 90,97 & 48,38 \\ \hline
+cz\_hx & 97,05 & 89,82 & 94,60 & 40,00 & 94,39 & 66,67 & 95,92 & 72,12 \\ \hline
+\end{tabular}
+\end{center}
+\caption{Výsledek testu shody kořenů}
+\label{tab:test_eql}
+\end{table}
+
+\section{JUnit}
+Všechny zásadní celky kódu jsou pokryty testy kontrolující integritu komponent pomocí \emph{JUnit}. Budou užitečné při případném dalším rozšiřování. Pokud dojde budoucí úpravou k~nechtěné zásadní změně funkčnosti existujících komponent, měly by to testy odhalit.
+
+V~aplikaci Crawler jsou takto pokryty všechny procesorové komponenty a~crawlery. V~rozšiřující Solr knihovně \emph{Analyzery.jar} jsou pokryty všechny tři nové stemmery i~s~jejich továrními třídami.
+
+Všechny napsané testy aktuálně úspěšně procházejí.
+
+\section{Test použitelnosti}
+V tomto testu předložím aplikaci skutečným uživatelům, aby otestovali navržené uživatelské rozhraní. Ověřím tak intuitivnost a funkčnost návrhu i imeplementace.
+
+\subsection{Výběr uživatelů}
+Testovací uživatele jsem volil především podle kritéria zkušenosti s prací s internetovými vyhledávači. Vybral jsem uživatele, kteří se běžně pohybují na internetu, umějí ovládat internetový prohlížeč, mají zažité zvyklosti z tohoto prostředí a běžně vyhledávají informace internetovými vyhledávači. Toto kritérium by mělo přesně vymezit skupinu uživatelů, pro kterou bylo uživatelské rozhraní cíleno.
+
+Uživatele jsem všechny vybíral z okruhu svých přátel, znám tedy jejich charakteristiku a schopnosti a mohl jsem tak cílit výběr přímo na výše zmíněné cílové schopnosti. Takoví uživatelé jsou v při mnou prováděném testu také více otevření a tím pádem se dozvím s menším úsilím více detailů o problémech, se kterými se potýkali.
+
+\subsection{Charakteristika uživatelů}
+Uživatelka Karolína je studentkou Filozofické fakulty Univerzity Karlovy. Počítač využívá k tvorbě školních prací, prohlížení internetu, komunikaci i sledování multimédií. Je schopná na počítači provést i některé složitější konfigurační úkony, její uživatelské schopnosti tak hodnotím jako vysokou. Na internetu se pohybuje každodenně, často hledá informace skrze internetové služby, sleduje video portály, navštěvuje sociální sítě. Její internetovou zkušenost také hodnotím jako vysokou.
+
+Uživatelka Petra používá počítač pro prohlížení a zálohu fotografií, práci s dokumenty a prohlížení internetu. Konfigurační úkony jsou pro ni velkou neznámou. Na internetu využívá sociální sítě, e-mailové služby, zpravodajské weby a vyhledávače. Web používá i k prodeji a propagaci zboží. Počítačové schopnosti tedy spíše průměrné, internetové vysoké.
+
+Uživatel Miroslav je absolventem Strojní fakulty ČVUT, jeho počítačové zkušenosti považuji za průměrné. Počítač používá pouze pro psaní dokumentů a prohlížení internetu. Na internet používá převážně k e-mailové komunikaci. Informace na internetu vyhledává v porovnání s předchozími uživatelkami méně často a s menší mírou zkušenosti.
+
+Anna je studentkou Ústavu translatologie na Filozofické fakultě Univerzity Karlovy. Počítač používá pro plnění školních povinností i pro zábavu. Na internetu používá sociální sítě, e-mailové služby, zpravodajské weby i vyhledávání. Co se týče vyhledávání na internetu je velmi pokročilá, denně při překladu vyhledává správná užití frází pomocí pokročilých technik dotazování internetových vyhledavačů.
+
+Posledním uživatelem, který se účastnil testu je Vladimír. Vladimír je studentem Technické univerzity v Liberci. V testu je nejpokročilejším uživatelem. Ve volném čase se zabývá programováním webových stránek i složitějších aplikací.
+
+Základní orientační charakteristiku vybraných uživatelů najdete v tabulce \ref{tab:test_usrs}.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\textbf{Jméno} & \textbf{Věk} & \textbf{Pohlaví} & \textbf{Vzdělání} & \textbf{PC gram.} & \textbf{WWW gram.} \\ \hline
+Karolína & 21 & Žena & Maturita & Vysoká & Vysoká \\ \hline
+Petra & 46 & Žena & Maturita & Průměrná & Vysoká \\ \hline
+Ing. Miroslav & 54 & Muž & Vysokoškolské & Průměrná & Průměrná \\ \hline
+Anna & 21 & Žena & Maturita & Vysoká & Vysoká \\ \hline
+Vladimír & 63 & Muž & Maturita & Expertní & Expertní \\ \hline
+\end{tabular}
+\end{center}
+\caption{Testovací uživatelé}
+\label{tab:test_usrs}
+\end{table}
+
+\subsection{Průběh testu}
+Testovacím uživatelům jsem stručně představil aplikaci, Seznámil jsem je s účelem aplikace, v bodech jsem vyjmenoval možnosti co nabízí a vysvětlil základní terminologii. Z celého průběh testu jsem se svolením uživatelů pořídil videonahrávku, abych mohl test zpětně analyzovat a vyvodit závěry. Test jsem prováděl s každým uživatelem zvlášť.
+
+Do systému jsem pro účely testu nahrál data. Do jednoho indexu dokumenty s uloženými články z technického zpravodajského webu, do druhého anonymizované příklady policejních dokumentů. Uživatele jsem nechal několik minut zkoumat prostředí aby se sami zběžně seznámili s funkcemi. Poté jsem uživatelům zadal plnit následující úkoly a instruoval je, aby své kroky, které budou provádět, nahlas komentovali. Během plnění úkolu jsem nezasahoval, pouze jsem pasivně pozoroval jejich počínání.
+
+\begin{enumerate}
+\item Vyhledejte dokumenty týkající se firmy „Microsft“.
+\item Zjistěte jaké shluky se ve výsledcích vyskytují.
+\item Zjistěte v jakých shlucích se nachází první výsledek.
+\item \label{task_clusterfilter}Odfiltrujte pouze výsledky ve shlucích „Windows 10“ a „Google“.
+\item Zobrazte zpět všechny výsledky hledání.
+\item Otevřete první dokument ve výsledcích.
+\item Otevřete dokument, který je otevřenému dokumentu nejpodobnější.
+\item Vyhledejte v druhé kolekci dokumenty, které v textu mají spojení „úřední záznam“
+\item \label{task_engine}Změňte mechanizmus shlukování.
+\item Zjistěte, kdy byly nalezené dokumenty naposledy upraveny.
+\end{enumerate}
+
+Úkoly jsou navrženy tak, aby prověřili především klíčové aspekty rozhraní. Těmi jsou například, zda uživatel bude vědět jak se vrátit z detailu dokumentu, zda uživatel pochopí funkci filtrování podle shluků a zda pochopí možnost přepínání kolekcí či shlukovacích algoritmů.
+
+Po dokončení testu jsem s každým ještě diskutoval o návrzích na vylepšení a dotázal na jejich porozumění funkcím jednotlivých detailů prvků rozhraní. Zaměřil jsem se na následující body.
+
+\begin{itemize}
+\item Jestli vědí, co vyjadřuje číslo u každého shluku.
+\item Jestli bezpečně rozeznají otevřené shluky.
+\item Jestli dokáží zjistit, do jakých shluků dokument patří,
+\item Jestli vědí, jaké výsledky se zobrazují ve výchozím stavu.
+\item Jestli rozumí metadatům dokumentu.
+\end{itemize}
+
+Po každém testu jsem vždy rovnou navrhl a implementoval řešení nalezených kritických problémů, abych v dalších testech ihned viděl, zda má opatření účinek.
+
+\subsection{Výsledky testu}
+\subsubsection{Karolína}
+Jako první jsem test provedl s uživatelkou Karolínou. Uživatelka neměla problém s rozeznáním funkcí uživatelského rozhraní. Největší problém nastal v bodě \ref{task_clusterfilter}, kde měla vybrat výsledky jen z daných shluků. Uživatelku nenapadlo kliknout na více shluků a tím jich více vybrat. V následné diskusi jsem zjistil, že je to dáno nedostatečným zvýrazněním otevřených shluků. Otevřený shluk aktuálně změní pouze přidruženou ikonu složky z běžné na otevřenou, což uživatelka nepostřehla, nebo nebrala v úvahu. Zároveň jí zmátlo barevné označení odkazu po kliknutí. Prohlížeč Chrome totiž neodebírá správně \emph{hover} efekt odkazu po odjetí myši z odkazu.
+
+Na základě tohoto poznatku jsem dodatečně provedl drobnou úpravu frontendu. Řádek s otevřeným shlukem se označí nejen ikonou otevřeného adresáře, ale i změnou barvy. Tím by mělo dojít k dostatečnému zvýraznění otevřených shluků.
+
+\subsubsection{Petra}
+Následně jsem test provedl s uživatelkou Petrou. Ta se v prostředí také rychle zorientovala. Problém nastal opět u úkolu \ref{task_clusterfilter}. Aktuální vizualizace otevřeného shluku stále dostatečně nenapovídá, že lze filtrovat výsledky podle více shluků.
+
+Dalším těžkosti uživatelka měla u bodu \ref{task_engine}. Možnost přepnout shlukovací algoritmus hledala v prostoru bloku s nalezenými shluky a vůbec ji nenapadlo otevřít rozšířenou nabídku vyhledávání. Nabídku jsem dle zvyklostí z jiných vyhledávačů umístil vpravo od vyhledávacího pole. Rozšířenou nabídku uživatelka nepoužívá ani v běžných internetových vyhledávačích. Tento úkon naštěstí není kritický pro běžné vyhledávání, proto je nabídka běžně schovaná a proto také není velkým problémem, když ji uživatel hned nenajde. 
+
+Diskuzí jsme nakonec dospěli ještě k jedné nesrovnalosti. Při vyhledávání je každý výsledek zobrazen se třemi úryvky textu, ve kterých jsou zvýrazněna vyhledávaná slova. Každý úryvek je oddělen vizuálně novým řádkem tabulky a to se zdálo být matoucí.
+
+Na základě výsledků tohoto testu jsem opět vyvodil drobné změny v návrhu UI. Znovu jsem opravil zvýraznění otevřených shluků v seznamu a nahradil původní ikonu otevřeného či zavřeného adresáře ikonou zaškrtnutého či nezaškrtnutého formulářového políčka \emph{checkbox}. Uživatelé jsou zvyklí z formulářů na internetu, že zaškrtávací čtverečky znamenají možnost vybrat více položek, mělo by jim to tedy napovědět i v tomto případě.
+
+Druhou změnou se snažím řešit problém s úryvky textu ve výsledcích. Mám dvě možnosti. Buď zobrazím jen jeden delší úryvek, nebo změním způsob zobrazení úryvků tak, aby byly méně matoucí. Rozhodl jsem se pro druhou možnost. Nechám stále zobrazit 3 úryvky, protože v tom vidím výhodu, že se zobrazí více relevantního textu s hledanými slovy, což pomůže zjištění, který dokument je ten požadovaný. Co změním je, způsob zobrazení. Úryvky se nebudou zobrazovat ve třech samostatných řádcích, ale budou v jednom bloku odděleny obyčejnou textovou výpustkou.
+
+\subsection{Ing. Miroslav}
+Miroslav měl s použitím softwaru největší potíže, ale nakonec vše zvládl. Největším problémem bylo najít schovanou nabídku přepínání shlukovacího algoritmu. Hledal ji spíše v místě nabídky kolekcí, ale nakonec ji úspěšně našel. Navíc očekával, že změna algoritmu proběhne ihned při změně ve vstupním poli, a byl zmaten, když se tak nestalo.
+
+Miroslav si také nebyl jistý funkcí filtrování podle shluků. Ihned pochopil, že může zaškrtnout i více položek, takže předchozí opravná opatření se zdají být úspěšná. Ale nebyl si jistý jak se výsledek filtrování projevil. Nepostřehl, že se mezi výsledky zobrazují jen některé dokumenty. Rozhodl jsem se tedy provést ještě jednu drobnou změnu. U každé položky se zvýrazní barevně shluky, podle kterých se filtruje.
+
+\subsection{Anna}
+Anna zvládla všechny úkoly bez zjevného zaváhání. V následné diskuzi o proběhlém testu se akorát přiznala, že chvíli nevěděla jak otevřít dokument detail dokumentu. Zkoušela kliknout nejdříve na text dokumentu ve výsledcích než si všimla, že je v hlavičce odkaz.
+
+Zvažoval jsem, že bych jako odkaz na detail dokumentu označil celý box patřící položce výsledku. Nakonec jsem to ale zavrhl, protože by to mohlo přinést uživatelům více škody než užitku. Uživatelé by například mohli mít potíže s kopírováním textů a podobně.
+
+\subsection{Vladimír}
+Poslední test jsem provedl s uživatelem Vladimírem. S jeho zkušenostmi to byl spíše expertní test. Uživatel neshledal s použitím aplikace žádný větší problém. Jediné co zmínil bylo, že na stránce s detailem dokumentu hledal nějaké tlačítko pro návrat, než si uvědomil, že může použít funkce prohlížeče. Ale to je spíše drobnost.
+
+\section{Akceptační test}
+Posledním provedeným testem je akceptační test. Prošel jsem jednotlivé definované požadavky na systém a~ověřil jejich splnění. Všechny požadavky, které jsem zařadil do první fáze projektu a~které rozpracovává tato práce jsou splněny. Ostatní požadavky jsou odloženy, jelikož nebylo v~mých silách implementovat celé tak rozsáhlé zadání. Detailní rozpis je vidět v~tabulce \ref{tab:test_accept}.
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|l|p{6cm}|}
+\hline
+\multicolumn{3}{|c|}{\textbf{\ref{req_0} Funkční požadavky}} \\ \hline
+\multicolumn{2}{|l|}{\textbf{Požadavek}} & \textbf{Stav} \\ \hline
+\ref{req_00} & Indexace textových souborů & Splněno\\ \hline 
+\ref{req_01} & Rozšíření o~další index dokumentů & Splněno\\ \hline 
+\ref{req_02} & Ukládání celého obsahu dokumentů & Splněno\\ \hline 
+\ref{req_03} & Zpracovávání textu v~českém jazyce & Splněno\\ \hline 
+\ref{req_04} & Fulltextové vyhledávání v~dokumentech & Splněno\\ \hline 
+\ref{req_040} & Tokenizace českého textu & Splněno\\ \hline 
+\ref{req_041} & Stemizace českého textu & Splněno\\ \hline 
+\ref{req_042} & Zobrazení obsahu nalezených dokumentů & Splněno\\ \hline 
+\ref{req_043} & Zvýraznění hledaných slov & Splněno\\ \hline 
+\ref{req_05} & Zobrazení podobných dokumentů & Splněno\\ \hline 
+\ref{req_050} & Počítání podobnosti dokumentů & Splněno\\ \hline 
+\ref{req_06} & Shlukování výsledků hledání & Splněno\\ \hline 
+\ref{req_060} & Shlukování do automatických kategorií & Splněno\\ \hline 
+\ref{req_061} & Filtrování výsledků podle shluků & Splněno\\ \hline 
+\ref{req_07} & Rozpoznávání jmenných entit & Odloženo do dalších fází\\ \hline 
+\ref{req_070} & Rozpoznávání větných členů & Odloženo do dalších fází\\ \hline 
+\ref{req_071} & Rozpoznávání slovních druhů & Odloženo do dalších fází\\ \hline 
+\ref{req_072} & Porovnávání s~jmennými databázemi & Odloženo do dalších fází\\ \hline 
+\ref{req_08} & Extrakce vazeb mezi entitami & Odloženo do dalších fází\\ \hline 
+\hline
+\multicolumn{3}{|c|}{\textbf{\ref{req_1} Nefunkční požadavky}} \\ \hline
+\multicolumn{2}{|l|}{\textbf{Požadavek}} & \textbf{Stav} \\ \hline
+\ref{req_10} & Čistě open source technologie & Splněno\\ \hline 
+\ref{req_11} & Architektura klient-server jako webová služba & Splněno\\ \hline
+\ref{req_12} & Nativně nasaditelný pod Windows & Splněno\\ \hline
+\ref{req_13} & Rozšiřitelnost & Splněno\\ \hline
+\end{tabular}
+\end{center}
+\caption{Výsledek akceptačního testu}
+\label{tab:test_accept}
+\end{table}
