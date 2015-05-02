@@ -1,14 +1,22 @@
 \chapter{Obsah přiloženého CD}
 
 \begin{figure}
-	\dirtree{%
-		.1 readme.txt\DTcomment{stručný popis obsahu CD}.
-		.1 exe\DTcomment{adresář se spustitelnou formou implementace}.
-		.1 src.
-		.2 impl\DTcomment{zdrojové kódy implementace}.
-		.2 thesis\DTcomment{zdrojová forma práce ve formátu \LaTeX{}}.
-		.1 text\DTcomment{text práce}.
-		.2 thesis.pdf\DTcomment{text práce ve formátu PDF}.
-		.2 thesis.ps\DTcomment{text práce ve formátu PS}.
-	}
+\dirtree{%
+.1 SkorpSte\_cd.
+	.2 README.txt\DTcomment{Stručný popis obsahu CD}.
+	.2 applications\DTcomment{Adresář se spustitelnou formou implementace}.
+		.3 crawler\DTcomment{Klientská aplikace pro správu indexu}.
+		.3 searcher\DTcomment{Serverová aplikace}.
+	.2 documentation\DTcomment{Dokumentace aplikace}.
+		.3 analyzery\DTcomment{Vygenerovaný JavaDoc Sorl knihovny Analyzery}.
+		.3 crawler\DTcomment{Vygenerovaný JavaDoc aplikace Crawler}.
+		.3 thesis\DTcomment{Text diplomové práce}.
+	.2 sources\DTcomment{Zdrojové kódy}.
+		.3 analyzery\DTcomment{Zdrojový kód Solr knihovny Analyzery}.
+		.3 crawler\DTcomment{Zdrojový kód aplikace Crawler}.
+		.3 frontend\DTcomment{Zdrojový kód webové aplikace FrontEnd}.
+		.3 stemmer\_tester\DTcomment{Aplikace pro testování kvality stemmerů}.
+		.3 thesis\DTcomment{Zdrojový text diplomové práce ve formátu \LaTeX{}}.
+		.3 uml\DTcomment{Zdrojové soubory UML diagramů pro aplikaci UMLet}.
+}
 \end{figure}
