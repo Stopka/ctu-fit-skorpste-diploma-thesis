@@ -16,7 +16,7 @@ Poslední komponentou v~architektuře je tzv. \emph{Crawler}. To bude samostatn�
 \end{center}
 \end{figure}
 
-\section{Crawler}
+\section{Crawler} \label{design_crawler}
 Jedná se o aplikaci, která dle nastavení projde rekurzivně složky file systému, vyhledá všechny soubory, sestaví z~nich Solr dokumenty a~pošle je k~indexaci do Solru. Dále bude procházet dokumenty v~Solru, kontrolovat, zda daný dokument ještě existuje ve filesystému, a~pokud ne, tak jej z~indexu odstraní. Jejím posledním úkolem je kompletní vyprázdnění indexu Solru.
 
 Vzhledem k tomu, že aplikace bude komunikovat se Solr serverem, rozhodl jsem se, že tuto aplikaci naprogramuji v~jazyce Java, jelikož pro Javu existuje oficiální Java knihovna \emph{Apache SolrJ} pro napojení na Solr server. Kromě této knihovny využiji ještě knihovnu \emph{Apache Log4J} pro zaznmenávání nastalých událostí, která je již závislostí \emph{SolrJ}, a~protože bude součástí aplikace, nebránil jsem se jejímu využití. Konfiguraci programu si usnadním využitím knihovny \emph{Apache commons-configuration}, která mi umožní definovat v~\emph{resources} adresáři výchozí konfigurační hodnoty, které ovšem bude možné přetížit hodnotami jinými pomocí externího konfiguračního souboru nebo pomocí argumentů programu. Díky tomu bude možné měnit chování programu podle aktuálních potřeb.
@@ -56,10 +56,10 @@ V budoucnosti by bylo možné tyto tovární třídy upravit, aby spolupracovaly
 \end{center}
 \end{figure}
 
-\section{Uživatelské rozhraní}
+\section{Uživatelské rozhraní} \label{design_frontend}
 Na návrhu UI jsem úzce spolupracoval se zadavatelem, abych co nejvíce vyhověl jeho požadavkům. Při návrhu rozhraní jsem se snažil držet se zvyklostí zažitých ve webovém prostředí. Zvláště pak vycházím ze zvyklostí z~internetových vyhledávačů, jako je Google. Další inspirací byl webový frontend aplikace Carrot2. Jelikož jde o~webovou aplikaci, počítá návrh s~proměnnou velikostí okna a~celý layout bude plně responzivní a~přizpůsobený pro jakoukoliv velikosti okna, včetně mobilních.
 
-Všechny funkční požadavky jde rozdělit do dvou částí: Na požadavky týkající se výsledků vyhledávání jako celku (vyhledávání, shlukování) a~požadavky týkající se jednoho vybraného dokumentu (podobnostní vyhledávání, zobrazení obsahu). Uživatelské rozhraní tedy bude sestávat také ze dvou layoutů, z nichž každý bude odpovídat jedné skupině požadavků. Mezi layouty se pak bude volně procházet proklikem. 
+Všechny funkční požadavky jde rozdělit do dvou částí: na požadavky týkající se výsledků vyhledávání jako celku (vyhledávání, shlukování) a~požadavky týkající se jednoho vybraného dokumentu (podobnostní vyhledávání, zobrazení obsahu). Uživatelské rozhraní tedy bude sestávat také ze dvou layoutů, z nichž každý bude odpovídat jedné skupině požadavků. Mezi layouty se pak bude volně procházet proklikem. 
 
 Layouty budou mít společný jednotící prvek, a to hlavičku stránky s~logem aplikace, které bude umístěné tradičně v~levém horním rohu stránky. Zbytek hlavičky bude odpovídat kontextu daného layoutu, aby se neplýtvalo místem. Hlavička bude i~nositelem informace o~kontextu aktuální stránky a bude napovídat, v~jaké části se uživatel nachází.
 
@@ -99,7 +99,7 @@ Kliknutím na ID dokumentu ve výsledcích vyhledávání se dostaneme do zobraz
 
 Sloupec s~obsahem bude ve vrchní části zobrazovat metadata dokumentu a následovat bude celý text dokumentu. Vyhledávané fráze budou v~textu zvýrazněny. 
 
-Pravý sloupec bude obsahovat seznam dokumentů, které jsou podobné dokumentu právě otevřenému. Seznam bude strukturován podobně jako seznam výsledků ve vyhledávacím layoutu: Bude obsahovat ID dokumentu, které bude zároveň odkazem na detail příslušného dokumentu, poté budou následovat metadata dokumentů a~úryvek obsahu. Dokumenty budou v~tomto sloupci řazeny podle skóre, které vyjadřuje míru podobnosti dokumentu s~otevřeným dokumentem.
+Pravý sloupec bude obsahovat seznam dokumentů, které jsou podobné dokumentu právě otevřenému. Seznam bude strukturován podobně jako seznam výsledků ve vyhledávacím layoutu: bude obsahovat ID dokumentu, které bude zároveň odkazem na detail příslušného dokumentu, poté budou následovat metadata dokumentů a~úryvek obsahu. Dokumenty budou v~tomto sloupci řazeny podle skóre, které vyjadřuje míru podobnosti dokumentu s~otevřeným dokumentem.
 
 \begin{figure}[h]
 \begin{center}
