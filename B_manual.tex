@@ -1,9 +1,9 @@
 \chapter{Uživatelská příručka}
 \section{Požadavky}
-Systém ke svému běhu potřebuje následující softwarové prerekvizity. Aplikace může fungovat i na jiných verzích, na těchto zde napsaných byla aplikace testována.
+Systém ke svému běhu potřebuje následující softwarové prerekvizity. Aplikace může fungovat i~na jiných verzích, na těchto zde napsaných byla aplikace testována.
 \begin{itemize}
-\item Windows 7/8; Linux 4
-\item Java runtime 1.8 (na počítači \emph{search~server} a \emph{file~client}, viz kapitola\ref{arch})
+\item Windows 7/8; Linux
+\item Java runtime 1.8 (na počítači \emph{search~server} a~\emph{file~client}, viz kapitola\ref{arch})
 \item Internetový prohlížeč Chrome~42/Firefox~37 (na počítači \emph{search~client}, viz kapitola \ref{arch})
 \item Apache~Maven~3 (pouze pro kompilaci)
 \item IntelliJ~Idea (doporučeno, pouze pro kompilaci)
@@ -11,20 +11,20 @@ Systém ke svému běhu potřebuje následující softwarové prerekvizity. Apli
 
 \section{Instalace}
 \begin{enumerate}
-\item Zkopírujte adresář s aplikací \emph{searcher} do adresáře cílového počítače (\emph{search~server} - viz kapitola \ref{arch}).
-\item Zkopírujte adresář s aplikací \emph{crawler} do adresáře cílového počítače (\emph{file~client} - viz kapitola \ref{arch})
+\item Zkopírujte adresář s~aplikací \emph{searcher} do adresáře cílového počítače (\emph{search~server} - viz kapitola \ref{arch}).
+\item Zkopírujte adresář s~aplikací \emph{crawler} do adresáře cílového počítače (\emph{file~client} - viz kapitola \ref{arch})
 \end{enumerate}
 
 \section{Kompilace}
 Kompilaci mají všechny součásti velmi podobnou, proto zde uvedu jednotný návod.
 \begin{enumerate}
-\item V~adresáři zdrojových souborů zavolejte program Maven příkazem \verb|maven clean build|.
-\item Maven automaticky stáhne potřebné knihovny a sestaví knihovnu, webový archiv či java aplikaci. hotový archiv naleznete v~adresáři \emph{/target/} příslušné aplikace.
+\item V~adresáři zdrojových souborů spusťte program Maven příkazem \verb|maven clean build|.
+\item Maven automaticky stáhne potřebné knihovny a~sestaví knihovnu, webový archiv či java aplikaci. Hotový archiv naleznete v~adresáři \emph{/target/} příslušné aplikace.
 \end{enumerate} 
 
 \subsection{Sestavení}
 \begin{itemize}
-\item Aplikace \emph{crawler} je samostatnou aplikací běžící v Java runtime. Všechny závislosti se při kompilaci přibalí do výsledného aplikačního archivu \emph{crawler-jar-with-dependencies.jar}
+\item Aplikace \emph{crawler} je samostatnou aplikací běžící v~Java runtime. Všechny závislosti se při kompilaci přibalí do výsledného aplikačního archivu \emph{crawler-jar-with-dependencies.jar}
 \item Knihovnu \emph{Analyzery} nainstalujete do solru zkopírováním výsledného souboru\emph{Analyzery.jar} do adresáře \emph{/searcher/solr/lib/} serverové aplikace.
 \item \emph{Frontend} nainstalujete do solru zkopírováním výsledného souboru \emph{frontend.war} do adresáře \emph{/searcher/webapps/}.
 \end{itemize}
@@ -35,7 +35,7 @@ Aplikaci spustíte zavoláním skriptu \emph{run.bat} na Windows, respektive \em
 
 \subsection{Konfigurace}
 \subsubsection{Změna portu}
-Síťový port nastavíte v souboru \emph{/searcher/etc/jetty.xml} změnou hodnoty označené textem \emph{[PORT]} v následujícím úryvku. Ve výchozím stavu je port nastaven na \emph{8080}.
+Síťový port nastavíte v~souboru \emph{/searcher/etc/jetty.xml} změnou hodnoty označené textem \emph{[PORT]} v~následujícím úryvku. Ve výchozím stavu je port nastaven na \emph{8080}.
 \begin{verbatim}
 <Call name="addConnector">
   <Arg>
@@ -49,10 +49,10 @@ Síťový port nastavíte v souboru \emph{/searcher/etc/jetty.xml} změnou hodno
 \end{verbatim}
 
 \subsubsection{Přidání indexu}
-Vytvořte kopii adresáře \emph{/searcher/solr/collection1} pro český index, nebo \emph{/searcher/solr/en\_collection1} pro anglický. Nový adresář vhodně pojmenujte, například \emph{/searcher/solr/collection2}. Upravte jméno kolekce změnou hodnoty \verb|name=collection2| v souboru \emph{/searcher/solr/collection2/core.properties}. Jméno kolekce musí být unikátní.
+Vytvořte kopii adresáře \emph{/searcher/solr/collection1} pro český index, nebo \emph{/searcher/solr/en\_collection1} pro anglický. Nový adresář vhodně pojmenujte, například \emph{/searcher/solr/collection2}. Upravte jméno kolekce změnou hodnoty \verb|name=collection2| v~souboru \emph{/searcher/solr/collection2/core.properties}. Jméno kolekce musí být unikátní.
 
 \subsubsection{Změna stemmeru}
-Nahraďte \emph{[ANALYZER]} v úryvku souboru \emph{/searcher/solr/<kolekce>/conf/schema.xml} jménem analyzeru s požadovaným stemmerem.
+Nahraďte \emph{[ANALYZER]} v~úryvku souboru \emph{/searcher/solr/<kolekce>/conf/schema.xml} jménem analyzéru s~požadovaným stemmerem.
 \begin{verbatim}
 <field name="text" type="[ANALYZER]" indexed="true" 
        stored="true" termVectors="true" />
@@ -60,7 +60,7 @@ Nahraďte \emph{[ANALYZER]} v úryvku souboru \emph{/searcher/solr/<kolekce>/con
 Přípustné hodnoty jsou \emph{text\_cz}, \emph{text\_cz\_light}, \emph{text\_cz\_agressive}, \emph{text\_cz\_helebrand}, \emph{text\_cz\_hunspell}, \emph{text\_cz\_hh}, \emph{text\_cz\_hx}. Výchozí hodnota je \emph{text\_cz\_hx}. Po změně je nutné přeindexovat všechny soubory.
 
 \subsubsection{Změna výchozího shlukovacího algoritmu}
-Nahraďte \emph{[ENGINE]} v úryvku souboru \emph{/searcher/solr/<kolekce>/conf/solrconfig.xml} jménem požadovaného shlukovacího enginu.
+Nahraďte \emph{[ENGINE]} v~úryvku souboru \emph{/searcher/solr/<kolekce>/conf/solrconfig.xml} jménem požadovaného shlukovacího enginu.
 \begin{verbatim}
 <requestHandler name="/searcher" startup="lazy"
                 enable="${solr.clustering.enabled:false}"
@@ -73,23 +73,23 @@ Nahraďte \emph{[ENGINE]} v úryvku souboru \emph{/searcher/solr/<kolekce>/conf/
 Přípustné hodnoty jsou \emph{lingo} (výchozí), \emph{stc}, \emph{kmeans}.
 
 \section{Crawler}
-Crawler se spuští zavoláním skriptu \emph{run.bat} na Windows, respektive \emph{run.sh} na Linuxu. V rámci jednoho běhu se provedou dvě fáze: \emph{cleaning} a \emph{indexing}. \emph{Indexing} fáze prochází adresáře, hledá nové soubory a všechny soubory zanese do indexu. Existuje-li již soubor v indexu, aktualizuje jej. \emph{Cleaning} fáze projde všechny dokumenty v indexu a pokud již soubor neexistuje v adresáři, z indexu jej smaže. 
+Crawler se spuští zavoláním skriptu \emph{run.bat} na Windows, respektive \emph{run.sh} na Linuxu. V~rámci jednoho běhu se provedou dvě fáze: \emph{cleaning} a~\emph{indexing}. \emph{Indexing} fáze prochází adresáře, hledá nové soubory a~všechny soubory zanese do indexu. Existuje-li již soubor v~indexu, aktualizuje jej. \emph{Cleaning} fáze projde všechny dokumenty v~indexu a~pokud již soubor neexistuje v~adresáři, z~indexu jej smaže. 
 
-Veškerá konfigurace se provádí skrze konfigurační soubor či vstupní parametry. Ve výchozím stavu se hledá konfigurační soubor \emph{crawler.properties} v adresáři spuštění aplikace. Cesta ke konfiguračnímu souboru se může změnit přidáním parametru \emph{config}. Výsledný příkaz pro spuštění pak vypadá například následovně: \\ \verb|run.sh -Dconfig=cesta/k/souboru/nastavení.properties| \\
+Veškerá konfigurace se provádí skrze konfigurační soubor či vstupní parametry. Ve výchozím stavu se hledá konfigurační soubor \emph{crawler.properties} v~adresáři spuštění aplikace. Cesta ke konfiguračnímu souboru se může změnit přidáním parametru \emph{config}. Výsledný příkaz pro spuštění pak vypadá například následovně: \\ \verb|run.sh -Dconfig=cesta/k/souboru/nastavení.properties| \\
 
-Konfigurační soubor má formu textového souboru, kde každý parametr je na novém řádku. Parametry jsou ve tvaru \verb|proměnná=hodnota|. Chcete-li měnit chování programu pomocí vstupních parametrů, musíte je vložit za jméno skriptu \emph{run.sh}, každý uvozený znaky \verb|-D|, a jednotlivé parametry oddělit mezerou. Příklad najdete níže.
+Konfigurační soubor má formu textového souboru, kde každý parametr je na novém řádku. Parametry jsou ve tvaru \verb|proměnná=hodnota|. Chcete-li měnit chování programu pomocí vstupních parametrů, musíte je vložit za jméno skriptu \emph{run.sh}, každý uvozený znaky \verb|-D|, a~jednotlivé parametry oddělit mezerou. Příklad najdete níže.
  
-Chcete-li provádět indexování adresářů v pravidelných intervalech, musíte si pomocí nástrojů vašeho operačního systému nastavit spuštění skriptu i s konfiguračními parametry. 
+Chcete-li provádět indexování adresářů v~pravidelných intervalech, musíte si pomocí nástrojů vašeho operačního systému nastavit spuštění skriptu i~s konfiguračními parametry. 
 
 Základní spuštění pak vypadá takto:
 \begin{verbatim}
 run.sh -Dsolr.host=http://localhost:8080/solr/collection1 
  -Dindexer.crawler.file_system.paths=~/documents,~/files
 \end{verbatim}
-Parametry určují adresu solr serveru a kolekce, ke které se má připojit a seznam adresářů, které má indexovat. Další volby lze nastavit přidáním parametrů.
+Parametry určují adresu solr serveru a~kolekce, ke které se má připojit a~seznam adresářů, které má indexovat. Další volby lze nastavit přidáním dalších parametrů.
 
 \subsection{Vypnutí fáze}
-Pro vypnutí \emph{cleaning} fáze přidáme parametr \verb|cleaner.crawler=none|. Pro vypnutí \emph{indexing} fáze parametr \verb|indexer.crawler=none|.
+Pro vypnutí \emph{cleaning} fáze aktivujte parametr \verb|cleaner.crawler=none|. Pro vypnutí \emph{indexing} fáze parametr \verb|indexer.crawler=none|.
 
 \subsection{Parsování dokumentů}
 Lze specifikovat, jakým způsobem se budou získávat data z~nalezených souborů. Jsou dvě možnosti. Výchozí je použití \emph{txt}, které načítá všechny soubory jako UTF-8 textové soubory. Přidáním parametru \\\verb|indexer.factory.txt.charset=windows-1250| lze nastavit kódování \emph{windows1250} pro načítání souborů. Obdobným způsobem lze zvolit i~jiné kódování.
@@ -100,4 +100,4 @@ Druhou možností je použití \emph{Tika} knihovny, která umí získat text i~
 Přidáním parametru \verb|cleaner.filter=all| se ve fázi čištění nebude kontrolovat existence souborů, ale odstraní se všechny dokumenty z~indexu.
 
 \section{Frontend}
-Frontend je k~dispozici hned po spuštění searcher serveru. Dostanete se k~němu pomocí internetového prohlížeče na nastavené adrese \\ \verb|http://<ip adresa serveru>:<port>/|. Ve výchozím stavu je port nastaven na \emph{8080}.
+Frontend je k~dispozici hned po spuštění searcher serveru. Připojíte se k~němu pomocí internetového prohlížeče na nastavené adrese \\ \verb|http://<ip adresa serveru>:<port>/|. Ve výchozím stavu je port nastaven na \emph{8080}.
