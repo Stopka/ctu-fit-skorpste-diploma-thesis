@@ -1,10 +1,10 @@
 \chapter{Uživatelská příručka}
 \section{Požadavky}
-Systém ke svému běhu potřebuje následující softwarové prerekvizity. Aplikace může fungovat i~na jiných verzích, na těchto zde napsaných byla aplikace testována.
+Systém ke svému fungování potřebuje následující softwarové prerekvizity. Aplikace může fungovat i~na jiných verzích, na těchto zde napsaných byla aplikace testována.
 \begin{itemize}
 \item Windows 7/8; Linux
 \item Java runtime 1.8 (na počítači \emph{search~server} a~\emph{file~client}, viz kapitola\ref{arch})
-\item Internetový prohlížeč Chrome~42/Firefox~37 (na počítači \emph{search~client}, viz kapitola \ref{arch})
+\item Internetový prohlížeč, např. Chrome~42/Firefox~37 (na počítači \emph{search~client}, viz kapitola \ref{arch})
 \item Apache~Maven~3 (pouze pro kompilaci)
 \item IntelliJ~Idea (doporučeno, pouze pro kompilaci)
 \end{itemize}
@@ -52,15 +52,15 @@ Síťový port nastavíte v~souboru \emph{/searcher/etc/jetty.xml} změnou hodno
 Vytvořte kopii adresáře \emph{/searcher/solr/collection1} pro český index, nebo \emph{/searcher/solr/en\_collection1} pro anglický. Nový adresář vhodně pojmenujte, například \emph{/searcher/solr/collection2}. Upravte jméno kolekce změnou hodnoty \verb|name=collection2| v~souboru \emph{/searcher/solr/collection2/core.properties}. Jméno kolekce musí být unikátní.
 
 \subsubsection{Změna stemmeru}
-Nahraďte \emph{[ANALYZER]} v~úryvku souboru \emph{/searcher/solr/<kolekce>/conf/schema.xml} jménem analyzéru s~požadovaným stemmerem.
+Nahraďte \emph{[ANALYZER]} v~úryvku souboru \\ \emph{/searcher/solr/[KOLEKCE]/conf/schema.xml} jménem analyzéru s~požadovaným stemmerem.
 \begin{verbatim}
 <field name="text" type="[ANALYZER]" indexed="true" 
        stored="true" termVectors="true" />
 \end{verbatim}
-Přípustné hodnoty jsou \emph{text\_cz}, \emph{text\_cz\_light}, \emph{text\_cz\_agressive}, \emph{text\_cz\_helebrand}, \emph{text\_cz\_hunspell}, \emph{text\_cz\_hh}, \emph{text\_cz\_hx}. Výchozí hodnota je \emph{text\_cz\_hx}. Po změně je nutné přeindexovat všechny soubory.
+Přípustné hodnoty jsou \emph{text\_cz}, \emph{text\_cz\_light}, \emph{text\_cz\_agressive}, \\ \emph{text\_cz\_helebrand}, \emph{text\_cz\_hunspell}, \emph{text\_cz\_hh}, \emph{text\_cz\_hx}. Výchozí hodnota je \emph{text\_cz\_hx}. Po změně je nutné přeindexovat všechny soubory.
 
 \subsubsection{Změna výchozího shlukovacího algoritmu}
-Nahraďte \emph{[ENGINE]} v~úryvku souboru \emph{/searcher/solr/<kolekce>/conf/solrconfig.xml} jménem požadovaného shlukovacího enginu.
+Nahraďte \emph{[ENGINE]} v~úryvku souboru \\ \emph{/searcher/solr/[KOLEKCE]/conf/solrconfig.xml} jménem požadovaného shlukovacího enginu. Slovo \emph{[KOLEKCE]} v cestě nahraďte jménem adresáře s kolekcí, jejíž chování chcete upravit.
 \begin{verbatim}
 <requestHandler name="/searcher" startup="lazy"
                 enable="${solr.clustering.enabled:false}"
@@ -71,6 +71,9 @@ Nahraďte \emph{[ENGINE]} v~úryvku souboru \emph{/searcher/solr/<kolekce>/conf/
 </requestHandler>
 \end{verbatim}
 Přípustné hodnoty jsou \emph{lingo} (výchozí), \emph{stc}, \emph{kmeans}.
+
+\subsubsection{Přidání stop slov}
+Do seznamu stop slov lze přidat nové slovo vytvořením nového řádku se slovem v konfiguračním souboru \\ \emph{/searcher/solr/[KOLEKCE]/conf/lang/stopwords\_[JAZYK].xml}. Slovo \emph{[KOLEKCE]} v cestě nahraďte jménem adresáře s kolekcí, jejíž chování chcete upravit. Slovo \emph{[JAZYK]} pak mezinárodním dvoupísmeným kódem jazyka kolekce.
 
 \section{Crawler}
 Crawler se spuští zavoláním skriptu \emph{run.bat} na Windows, respektive \emph{run.sh} na Linuxu. V~rámci jednoho běhu se provedou dvě fáze: \emph{cleaning} a~\emph{indexing}. \emph{Indexing} fáze prochází adresáře, hledá nové soubory a~všechny soubory zanese do indexu. Existuje-li již soubor v~indexu, aktualizuje jej. \emph{Cleaning} fáze projde všechny dokumenty v~indexu a~pokud již soubor neexistuje v~adresáři, z~indexu jej smaže. 
@@ -92,7 +95,7 @@ Parametry určují adresu solr serveru a~kolekce, ke které se má připojit a~s
 Pro vypnutí \emph{cleaning} fáze aktivujte parametr \verb|cleaner.crawler=none|. Pro vypnutí \emph{indexing} fáze parametr \verb|indexer.crawler=none|.
 
 \subsection{Parsování dokumentů}
-Lze specifikovat, jakým způsobem se budou získávat data z~nalezených souborů. Jsou dvě možnosti. Výchozí je použití \emph{txt}, které načítá všechny soubory jako UTF-8 textové soubory. Přidáním parametru \\\verb|indexer.factory.txt.charset=windows-1250| lze nastavit kódování \emph{windows1250} pro načítání souborů. Obdobným způsobem lze zvolit i~jiné kódování.
+Lze specifikovat, jakým způsobem se budou získávat data z~nalezených souborů. Jsou dvě možnosti. Výchozí je použití \emph{txt}, které načítá všechny soubory jako UTF-8 textové soubory. Přidáním parametru \\\verb|indexer.factory.txt.charset=windows-1250| lze nastavit kódování \\ \emph{windows1250} pro načítání souborů. Obdobným způsobem lze zvolit i~jiné kódování.
 
 Druhou možností je použití \emph{Tika} knihovny, která umí získat text i~ze složitějších formátů dokumentů, jako jsou \emph{DOC}, \emph{RTF} a~podobně. Knihovna sama rozpozná typ a~kódování souborů. Tuto možnost aktivujete pomocí parametru \verb|indexer.factory=tika|.
 
