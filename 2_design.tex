@@ -2,7 +2,7 @@
 \section{Architektura} \label{arch}
 V~této kapitole se pokusím navrhnout strukturu jednotlivých komponent výsledného řešení. Celá architektura systému je znázorněna na obrázku \ref{fig:Architecture}. Středobodem systému je server s~nainstalovaným servlet containerem Jetty. V~containeru bude nainstalován Solr. 
 
-Solr bude tvořit backend aplikace. Budou do něj připojena knihovna \emph{Carrot2}, které rozšíří jeho možnosti o~shlukování výsledků, a~má vlastní knihovna s~implementovanými nástroji pro zpracování českého textu pojmenovaná \emph{Analyzery}. Solr bude tedy uchovávat index i~samotný obsah dokumentů, bude zpracovávat vyhledávací dotazy uživatelů a~vracet nalezené výsledky včetně informací o~shlucích a~o~podobnosti dokumentů.
+Solr bude tvořit backend aplikace. Bude do něj připojena knihovna \emph{Carrot2}, která rozšíří jeho možnosti o~shlukování výsledků, a~má vlastní knihovna s~implementovanými nástroji pro zpracování českého textu pojmenovaná \emph{Analyzery}. Solr bude tedy uchovávat index i~samotný obsah dokumentů, bude zpracovávat vyhledávací dotazy uživatelů a~vracet nalezené výsledky včetně informací o~shlucích a~o~podobnosti dokumentů.
 
 Kromě Solru poběží v~Jetty ještě frontend aplikace. Frontend vytvořím vlastní tak, aby vyhovoval požadavkům. Solr tvoří solidní backend, který komunikuje pomocí HTTP rozhraní a~umožňuje vracet data ve snadno zpracovatelném JSON formátu. Rozhodl jsem se proto, že frontend bude tvořen několika statickými stránkami a~veškerá dynamika bude dodána pomocí JavaScriptu. Stránka se bude pomocí AJAX požadavků dotazovat přímo backendu aplikace --- Solru. Servlety tedy budou jen posílat statické HTML stránky, JavaScriptové knihovny, CSS styly a~podobné soubory. Výhoda řešení spočívá především v jeho jednoduchosti. Celý vyhledávací server bude fungovat v~jednom servlet containeru, vše se tedy zprovozní jen spuštěním nakonfigurovaného Jetty. Zároveň nebudu muset vytvářet stejné rozhraní dvakrát (jednou pro dotazování JavaScriptu webového serveru a~jednou pro dotazování webového serveru Solru).
 
@@ -39,11 +39,6 @@ Nakonec bude nutné implementovat \emph{CollectorProcessor}, který sesbírá pr
 
 Řetězce procesorů budou končit procesorem \emph{IndexingCollectionProcessor} nebo \emph{CleaningCollectionProcessor}. Tyto procesory přijmou kolekci dokumentů k~odstranění či zaindexování a~provedou kýžené změny v~indexu. Komunikace těchto procesorů se Solr serverem bude odstíněna vyčleněním funkcí do samostatné třídy \emph{Index}. \emph{Index} bude pro procesory jednotným modelem pro komunikaci se Solrem a~jeho rozhraní tedy budou procesory používat k~aplikování změn v~indexu.
 
-\subsubsection{Tovární třídy}
-Řetězce procesorů budou sestavovány na základě konfigurace, s~využitím návrhového vzoru factory. Sestavování bude mít vždy na starosti daná tovární třída. Tovární třídy se budou řídit parametry přijatými z~konfigurace.
-
-V budoucnosti by bylo možné tyto tovární třídy upravit, aby spolupracovaly s~načítáním tříd a~konfigurací. V~konfiguraci by byl definován řetězec tříd s~případnými konfiguračními parametry. Tovární třída by našla definované třídy (například i~v externích jar knihovnách v~adresáři \emph{lib}), načetla je a~sestavila do řetězce. Tím by byla zaručena absolutní rozšiřitelnost řešení. Podobným způsobem funguje i~konfigurace Solru. Tato verze Crawleru však toto rozšíření zatím obsahovat nebude.
-
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=13cm]{ProcessorClasses}
@@ -55,13 +50,18 @@ V budoucnosti by bylo možné tyto tovární třídy upravit, aby spolupracovaly
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=13cm]{OtherClasses}
-\caption{Diagram Factory a~Filter tříd Crawleru}
+\caption{Diagram factory a~filter tříd Crawleru}
 \label{fig:OtherClasses}
 \end{center}
 \end{figure}
 
+\subsubsection{Tovární třídy}
+Řetězce procesorů budou sestavovány na základě konfigurace, s~využitím návrhového vzoru factory. Sestavování bude mít vždy na starosti daná tovární třída. Tovární třídy se budou řídit parametry přijatými z~konfigurace.
+
+V budoucnosti by bylo možné tyto tovární třídy upravit, aby spolupracovaly s~načítáním tříd a~konfigurací. V~konfiguraci by byl definován řetězec tříd s~případnými konfiguračními parametry. Tovární třída by našla definované třídy (například i~v externích jar knihovnách v~adresáři \emph{lib}), načetla je a~sestavila do řetězce. Tím by byla zaručena absolutní rozšiřitelnost řešení. Podobným způsobem funguje i~konfigurace Solru. Tato verze Crawleru však toto rozšíření zatím obsahovat nebude.
+
 \section{Uživatelské rozhraní} \label{design_frontend}
-Na návrhu UI jsem úzce spolupracoval se zadavatelem, abych co nejvíce vyhověl jeho požadavkům. Při návrhu rozhraní jsem se snažil držet se zvyklostí zažitých ve webovém prostředí. Zvláště pak vycházím ze zvyklostí z~internetových vyhledávačů, jako je Google. Další inspirací byl webový frontend aplikace Carrot2. Jelikož jde o~webovou aplikaci, počítá návrh s~proměnnou velikostí okna a~celý layout bude plně responzivní a~přizpůsobitelný pro jakoukoliv velikosti okna, včetně mobilních.
+Na návrhu UI jsem úzce spolupracoval se zadavatelem, abych co nejvíce vyhověl jeho požadavkům. Při návrhu rozhraní jsem se snažil držet se zvyklostí zažitých ve webovém prostředí. Zvláště pak vycházím ze zvyklostí z~internetových vyhledávačů, jako je Google. Další inspirací byl webový frontend aplikace Carrot2. Jelikož jde o~webovou aplikaci, počítá návrh s~proměnnou velikostí okna a~celý layout bude plně responzivní a~přizpůsobitelný pro jakoukoliv velikost okna, včetně mobilní.
 
 Všechny funkční požadavky jde rozdělit do dvou částí: na požadavky týkající se výsledků vyhledávání jako celku (vyhledávání, shlukování) a~požadavky týkající se jednoho vybraného dokumentu (podobnostní vyhledávání, zobrazení obsahu). Uživatelské rozhraní tedy bude sestávat také ze dvou layoutů, z nichž každý bude odpovídat jedné skupině požadavků. Mezi layouty se pak bude volně procházet proklikem. 
 

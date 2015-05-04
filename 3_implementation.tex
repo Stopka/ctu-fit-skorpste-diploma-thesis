@@ -1,12 +1,12 @@
 \chapter{Implementace}
 \section{Solr}
-Základní komponentou, kterou bylo třeba implementovat, byl Solr. Potřebuji aby software zvládl indexovat text v~českém jazyce. Solr obsahuje předinstalovanou a~částečně předkonfigurovanou českou sadou analyzerů, která zahrnuje \emph{StandardTokenizer}, \emph{LowerCaseFilter}, \emph{StopFilter} a~\emph{CzechStemFilter}. V~tomto pořadí.
+Základní komponentou, kterou bylo třeba implementovat, byl Solr. Potřebuji aby software zvládl indexovat text v~českém jazyce. Solr obsahuje předinstalovanou a~částečně předkonfigurovanou českou sadu analyzérů, která zahrnuje \emph{StandardTokenizer}, \emph{LowerCaseFilter}, \emph{StopFilter} a~\emph{CzechStemFilter}. V~tomto pořadí.
 
 \emph{StandardTokenizer} dělí text na tokeny. Po zběžné zkoušce jsem usoudil, že jeho algoritmus je funkční i~pro český jazyk. \emph{LowerCaseFilter} je určen k~převodu textu na malá písmena. I~tento filtr jsem otestoval a~opět se neprojevily žádné problémy --- převádí na malá písmena i~speciální české znaky s~interpunkcí. 
 
-\emph{StopFilter} odebírá tokeny odpovídající slovům v seznamu. Jeho fungování tedy závisí na kvalitě seznamu. V~Solru je předinstalován seznam \emph{czech\_stopwords.txt}, jenž obsahuje slova, která jsou v~českém jazyce natolik frekventovaná, že nevypoví o~vyhledávaném textu žádnou zásadní informaci. Jedná se především o~nejrůznější předložky, spojky a~pomocná slovesa. Tento seznam jsem shledal dostačujícím, už proto, že kdykoliv v~případě potřeby půjde seznam rozšířit o~další slova, která se vyskytují příliš často v~policejním prostředí, a~nepomáhají tudíž specifikovat hledaný text.
+\emph{StopFilter} odebírá tokeny odpovídající slovům v seznamu. Jeho fungování tedy závisí na kvalitě seznamu. V~Solru je předinstalován seznam \\\emph{czech\_stopwords.txt}, jenž obsahuje slova, která jsou v~českém jazyce natolik frekventovaná, že nevypoví o~vyhledávaném textu žádnou zásadní informaci. Jedná se především o~nejrůznější předložky, spojky a~pomocná slovesa. Tento seznam jsem shledal dostačujícím, už proto, že kdykoliv v~případě potřeby půjde seznam rozšířit o~další slova, která se vyskytují příliš často v~policejním prostředí, a~nepomáhají tudíž specifikovat hledaný text.
 
-Poslední \emph{CzechStemFilter} je klíčový analyzer. Jak jsem již psal v~kapitole \ref{analysis}~Analýza, měl by být výsledkem práce švýcarských programátorů. O~jeho kvalitách nejsem zcela přesvědčen, implementoval jsem proto do Solru další české stemmery.
+Poslední \emph{CzechStemFilter} je klíčový analyzér. Jak jsem již psal v~kapitole \ref{analysis}~Analýza, měl by být výsledkem práce švýcarských programátorů. O~jeho kvalitách nejsem zcela přesvědčen, implementoval jsem proto do Solru další české stemmery.
 
 \subsection{Stemmery}
 K~tomu, aby mohl být implementovaný \emph{StemFilter} použit v~Solru, je nutno vytvořit JAR knihovnu obsahující třídu implementující rozhraní \emph{TokenFilter} a~zároveň její tovární třídu, nejlépe potomka \emph{TokenFilterFactory}. Sestavená JAR knihovna se pak umístí do adresáře \emph{Lib}, kde z~ní bude moci \emph{ClassLoader} Solru číst. V~konfiguraci Solru je pak již možné použít nový filtr definovaný absolutním jménem tovární třídy. Parametry definované v~konfiguraci se předávají tovární třídě, je tedy možné konfigurací ovlivnit funkci stemmeru.
@@ -116,7 +116,7 @@ K již existujícímu textovému datovému typu \emph{text\_cz}, který použív
 </fieldType>
 \end{verbatim}
 
-Datové typy jsou pojmenované \emph{text\_cz\_light}, \emph{text\_cz\_agressive}, \emph{text\_cz\_helebrand} a~\emph{text\_cz\_hunspell}. Všechny tyto typy mají shodný analyzer pro dotazování i~pro indexování. V~ukázce konfigurace můžeme pozorovat parametry stemmerů, o~kterých jsem se zmiňoval v~kapitolách o~implementaci jednotlivých stemmerů.
+Datové typy jsou pojmenované \emph{text\_cz\_light}, \emph{text\_cz\_agressive}, \\ \emph{text\_cz\_helebrand} a~\emph{text\_cz\_hunspell}. Všechny tyto typy mají shodný analyzér pro dotazování i~pro indexování. V~ukázce konfigurace můžeme pozorovat parametry stemmerů, o~kterých jsem se zmiňoval v~kapitolách o~implementaci jednotlivých stemmerů.
 
 Poté jsem definoval datová pole indexu. Pole se definují také v~konfiguračním souboru \emph{schema.xml}. Pole ID je povinné, protože (podobně jako v~databázích) jednoznačně identifikuje dokument. Datový typ tohoto pole jsem nastavil na \emph{string} a~budu do něj ukládat absolutní cestu k~souboru ve filesystému zdrojového počítače. Pole \emph{name} bude uchovávat jméno souboru, ze kterého dokument pochází, pole \emph{edited} pak čas poslední editce souboru. Pole \emph{cat} je spíše přípravou pro budoucí možnost rozšíření o~nastavení kategorie, do které soubor spadá. Aktuálně nemá žádnou funkci.
 
@@ -139,7 +139,7 @@ Posledním definovaným polem je \emph{text}, do kterého se bude ukládat samot
 \subsubsection{Request handlery}
 Konfigurace tzv. request handlerů se nalézá v~konfiguračním souboru \emph{solrconfig.xml}. Mapuje URL adresu na komponenty, které dle nastavení zpracují požadavek. Definoval jsem dva request handlery, z~nichž každý odpovídá jedné stránce uživatelského rozhraní, protože pro každou stránku bude třeba jiné zpracování. 
 
-Request handler \emph{/searcher} je určen pro stránku vyhledávání a~bude tedy dodávat výsledky vyhledávání obohacené o~shlukování a~zvýraznění hledaných slov. Dále se v~konfiguraci nastavuje výchozí velikost stránky, výchozí dotaz a~pole, která má server vrátit v~odpovědi. Druhý request handler, \emph{/detail}, je určen pro stránku s~detailem o~dokumentu a~bude tedy vracet obsah dokumentu se zvýrazněním hledaných slov a~podobné dokumenty.
+Request handler \emph{/searcher} je určen pro stránku vyhledávání a~bude tedy dodávat výsledky vyhledávání obohacené o~shlukování a~zvýraznění hledaných slov. Dále se v~konfiguraci nastavuje výchozí velikost stránky, výchozí dotaz a~pole, která má server vrátit v~odpovědi. Druhý request handler, \emph{/detail}, je určen pro stránku s~detailem dokumentu a~bude tedy vracet obsah dokumentu se zvýrazněním hledaných slov a~podobné dokumenty.
 
 \begin{verbatim}
 <requestHandler name="/searcher"
@@ -228,7 +228,7 @@ Request handler \emph{/searcher} je určen pro stránku vyhledávání a~bude te
 \end{verbatim}
 
 \section{Crawler}
-Crawler jsem implementoval přesně podle návrhu popsaného v~kapitole \ref{design_crawler}. Třída\emph{DocumentFactory} tvoří výsledné dokumenty odpovídající schématu Solru a~aplikace počítá při ověřování existence souboru s~tím, že v~poli \emph{id} je uložena absolutní cesta k~souboru v~místním filesystému.
+Crawler jsem implementoval přesně podle návrhu popsaného v~kapitole \ref{design_crawler}. Třída \emph{DocumentFactory} tvoří výsledné dokumenty odpovídající schématu Solru a~aplikace počítá při ověřování existence souboru s~tím, že v~poli \emph{id} je uložena absolutní cesta k~souboru v~místním filesystému.
 
 \subsection{Konfigurace}
 Veškerá konfigurace se realizuje pomocí Apache commons-config knihovny. Knihovna umožňuje načíst a~zparsovat hned několik zdrojů nastavení a~pak v~místě potřeby jen získat hodnotu pomocí definovaného klíče. Za sestavení konfigurace je zodpovědná třída \emph{ConfigFactory}. Ta vrací singleton objekt \emph{Config} s~nastavením.

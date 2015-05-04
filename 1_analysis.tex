@@ -65,7 +65,7 @@ Požadavky, které jsou na aplikaci kladeny, by se tedy daly shrnout do následu
 \end{enumerate}
 
 \subsection{Stanovení první fáze}
-Definované požadavky jsou velmi rozsáhlé a~z~části na sebe navazují svými vstupy a~výstupy. Je tedy potřeba začít od základních požadavků a~ty pak rozšiřovat o~další možnosti zpracování. Celý definovaný rozsah je nad rámec jedné diplomové práce a~tak bylo nutné projekt rozčlenit do několika fází.
+Definované požadavky jsou velmi rozsáhlé a~z~části na sebe navazují svými vstupy a~výstupy. Je tedy třeba začít od základních požadavků a~ty pak rozšiřovat o~další možnosti zpracování. Celý definovaný rozsah je nad rámec jedné diplomové práce a~tak bylo nutné projekt rozčlenit do několika fází.
 
 První fáze sestává z~tvorby vyhledávání v~textu, a~to z~toho důvodu, že je jakýmsi základem dalších operací s~textem. Pro fulltextové vyhledávání musí text projít tokenizací, stemizací a~následně indexací do databáze. Na produkty těchto základních operací další operace navazují.
 
@@ -94,7 +94,7 @@ Z~definovaných požadavků vzešli aktéři a~případy užití systému. Oboj�
 
 \subsection{Vyhledávání dokumentů}
 \begin{itemize}
-	\item[Aktéři] \ref{itm:actor_user} Uživatel
+	\item[Aktéři:] \ref{itm:actor_user} Uživatel
 	\item[Scénář:]
 	\begin{enumerate}
 		\item Uživatel zadá dotaz.
@@ -289,8 +289,8 @@ Solr jako Java EE aplikace potřebuje servlet container ke svému běhu --- Jett
 \subsection{Carrot2}
 Jedním z~požadavků na projekt je shlukování výsledků vyhledávání. Zjistil jsem, že existuje javový open source shlukovací engine Carrot2\cite{carrot2:manual}, který má podporu v~jádře Solru. Engine je určený pro shlukování spíše menších kolekcí dat a~hodí se tedy právě pro shlukování výsledků vyhledávání.
 
-Carrot2 se distribuuje se třemi implementovanými algoritmy pro shlukování. Obsahuje algoritmus Bisekční K-means, který počítá vzdálenosti vektorů dokumentů nebo vektoru reprezentantů shluků a~vždy do shluku spojí 2 nejbližší sousedy až do požadovaného počtu shluků. Dále obsahuje algoritmus Lingo, který vytvořili S.~Osiński, J.~Stefanowski a~D.~Weiss, založený na algebraických transformacích matic termů a~extrakci častých frází použitím sufixových polí. Posledním obsaženým algoritmem je STC, suffix tree clustering, který sestaví termy do sufixového stromu, aby nalezl prvotní zástupce shluků dokumentů.
+Carrot2 se distribuuje se třemi implementovanými algoritmy pro shlukování. Obsahuje algoritmus Bisekční K-means, který počítá vzdálenosti vektorů dokumentů nebo vektoru reprezentantů shluků a~vždy do shluku spojí dva nejbližší sousedy až do požadovaného počtu shluků. Dále obsahuje algoritmus Lingo, který vytvořili S.~Osiński, J.~Stefanowski a~D.~Weiss, založený na algebraických transformacích matic termů a~extrakci častých frází použitím sufixových polí. Posledním obsaženým algoritmem je STC, suffix tree clustering, který sestaví termy do sufixového stromu, aby nalezl prvotní zástupce shluků dokumentů.
 
-Carrot2 obsahuje i~J2EE webovou aplikaci s~hotovým vyhledávacím rozhraním. Tato aplikace má možnost nakonfigurovat i~několik informačních zdrojů, ve kterých se bude vyhledávat. V~základu je několik zdrojů implementováno. Můžeme aplikaci napojit například na Wikipedii, Google, Bing i~Solr. Aplikace již podporuje zvýraznění hledaných slov ve výsledcích, zobrazení shluků i~filtrování dokumentů podle zvoleného shluku. Funguje tím způsobem, že dotaz přepošle na zdrojovou službu a~nad výsledky, které ji služba vrátí provede shlukovou analýzu. Následně pak zobrazí výsledky vyhledávání i~nalezené shluky. Shluky navíc umí zobrazit i~interaktivně v~grafické formě.
+Carrot2 obsahuje i~J2EE webovou aplikaci s~hotovým vyhledávacím rozhraním. Tato aplikace má možnost nakonfigurovat i~několik informačních zdrojů, ve kterých se bude vyhledávat. V~základu je několik zdrojů implementováno. Můžeme aplikaci napojit například na Wikipedii, Google, Bing i~Solr. Aplikace již podporuje zvýraznění hledaných slov ve výsledcích, zobrazení shluků i~filtrování dokumentů podle zvoleného shluku. Funguje tím způsobem, že dotaz přepošle na zdrojovou službu a~nad výsledky, které jí služba vrátí provede shlukovou analýzu. Následně pak zobrazí výsledky vyhledávání i~nalezené shluky. Shluky navíc umí zobrazit i~interaktivně v~grafické formě.
 
 Carrot2 lze tedy k~Solru připojit dvěma způsoby. Jednou možností je nasadit Carrot2 jako samostatnou webovou aplikaci, která bude zprostředkovávat vyhledávací dotazy na Solr server a~výsledky vyhledávání před vrácením ještě podrobí shlukové analýze. V~tomto případě by ale musel Carrot2 být zároveň i~frontendem systému a~tak využiji druhé možnosti připojení: Carrot2 bude do Solru nainstalován a~nakonfigurován jako rozšiřující knihovna pro shlukování výsledků, která bude obohacovat výsledky vyhledávání o~výsledky shlukové analýzy. Tím se zachová možnost výběru frontendu.
